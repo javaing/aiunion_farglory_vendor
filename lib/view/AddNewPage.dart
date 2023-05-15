@@ -9,7 +9,7 @@ import 'package:far_glory_construction_register/datamodel/ServerSetting.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-
+import 'package:cross_file_image/cross_file_image.dart';
 
 
 class AddNewPage extends StatefulWidget {
@@ -26,9 +26,6 @@ class _SampleViewState extends State<AddNewPage> {
   List<String> faceTypeID = <String>[""];
   List<String> faceTypeName = <String>[""];
 
-  CameraController? controller;
-  String imagePath = "";
-  List<CameraDescription>? cameras;
 
   final _usernameController = TextEditingController();
   final _phoneNumberController = TextEditingController();
@@ -36,21 +33,11 @@ class _SampleViewState extends State<AddNewPage> {
   final _validDateController = TextEditingController();
   String _selectedWorktitle = '';
 
-  Future<void> initCamera() async {
-    cameras = await availableCameras();
-    controller = CameraController(cameras![1], ResolutionPreset.max);
-    controller?.initialize().then((_) {
-      if (!mounted) {
-        return;
-      }
-      setState(() {});
-    });
-  }
 
   @override
   void initState() {
     super.initState();
-    initCamera();
+    //initCamera();
     loadSetting();
     loadFaceType();
   }
@@ -236,50 +223,58 @@ class _SampleViewState extends State<AddNewPage> {
             ),
           )
       ),
-      if (pickedImage != null)
+      if (xf != null)
         Container(
             width: 300,
             height: 300,
-            child: Image.file(
-              pickedImage!,
-            ))
-
+            child: Image(image: XFileImage(xf!))
+        )
 
     ],);
 
     return col1;
   }
 
-  void takePhoto() async {
 
-      try {
-        final image = await controller!.takePicture();
-        setState(() {
-          imagePath = image.path;
-        });
-      } catch (e) {
-        print(e);
-      }
-  }
-
-  File? pickedImage = null;
-  //open picker after selected option
+  XFile? xf = null;
   OpenPicker(ImageSource source) async
   {
-    XFile? xf = await ImagePicker().pickImage(source: source);
-    if(xf!=null) {
-      pickedImage = File(xf.path);
-      Navigator.pop(context);
-    }
+    //print('art image go!');
+    xf = await ImagePicker().pickImage(source: source);
+    setState(() {
+      if(xf!=null) {
+        print('art image=' + xf!.path);
+        //pickedImage = File(xf!.path);
+
+        showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                content: Image(image: XFileImage(xf!)),
+                actions: <Widget>[
+                  TextButton(
+                    child: Text('Close'),
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                  ),
+                ],
+              );
+            });
+        //print('art image ok?');
+        Navigator.pop(context);
+      }
+    });
+
   }
 
 
   @override
   Widget build(BuildContext context) {
-    print('art find 1');
-    if (!controller!.value.isInitialized) {
-      return Container();
-    }
+    // print('art find 1');
+    // if (!controller!.value.isInitialized) {
+    //   return Container();
+    // }
     print('art find 1 OK');
     return Scaffold(
         appBar: AppBar(
