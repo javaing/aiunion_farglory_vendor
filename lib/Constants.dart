@@ -6,6 +6,8 @@ final String DEFAULT_SERVER = "192.168.0.109";
 //final String DEFAULT_WS_SERVER = "60.250.33.237";
 String HOST = DEFAULT_SERVER;
 String v1token = "";
+String vendorName = "";
+String vendorFaceTypeId = "";
 
 
 String Weather_APIKEY = "CWB-D203008C-2640-4F20-A839-CD3708D26517";

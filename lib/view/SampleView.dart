@@ -26,6 +26,9 @@ class _SampleViewState extends State<SampleView> {
   Widget build(BuildContext context) {
   
     return Scaffold(
+      appBar: AppBar(
+        title: Text('Three Buttons Example'),
+      ),
       body: Padding(
         padding: const EdgeInsets.fromLTRB(30,0,30,0),
         child: Text('Hello'),

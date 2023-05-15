@@ -7,6 +7,8 @@ import 'package:dio/dio.dart';
 
 import '../Constants.dart';
 import '../datamodel/V1LoginResponse.dart';
+import 'AddNewPage.dart';
+import 'MainMenu.dart';
 
 class LoginPage extends StatefulWidget {
   @override
@@ -88,8 +90,20 @@ class _LoginPageState extends State<LoginPage> {
     var response = (await dio.post('http://'+ HOST +'/api/v1/session/login', data: {"type":"manager","username":acct,"password":pwd,"remember":true}));
     print("art response=" +response.toString());
     V1LoginResponse v1 = v1LoginResponseFromJson(response.toString()) ;
-    print("art token=" + v1.result!.token!);
+    if(v1.result!.token != null) {
+      print("art token=" + v1.result!.token!);
+      v1token = v1.result!.token!;
+      gotoNextPage();
+    } else {
+      showMsg(context, "login in fail");
+    }
 
+  }
+
+  void gotoNextPage() {
+    Navigator.push(context,
+      MaterialPageRoute(builder: (context) => const MainMenuPage()),
+    );
   }
   
   Widget submit() {
@@ -111,7 +125,7 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('包商管理-工人註冊'),
+        title: const Text('包商管理'),
       ),
       body: SingleChildScrollView(child: Padding(
         padding: const EdgeInsets.all(16.0),
