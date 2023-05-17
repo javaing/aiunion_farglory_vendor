@@ -2,16 +2,15 @@
 import 'dart:ui';
 
 
-final String DEFAULT_SERVER = "192.168.0.109";
-//final String DEFAULT_WS_SERVER = "60.250.33.237";
-String HOST = DEFAULT_SERVER;
+final String DEFAULT_HOST = "192.168.0.109";
+//final String DEFAULT_HOST = "60.250.33.237";
+String HOST = DEFAULT_HOST;
+final String V2_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOlsiZmFjZWFpIl0sInNjb3BlIjpbImFwaS1zZXJ2aWNlIl0sImV4cCI6MTkyMTE1MzI1OCwiYXV0aG9yaXRpZXMiOlsiYWl1bmlvbiJdLCJqdGkiOiI3ODI3YTBkYi0zMGQ3LTRhODItYjQyYy0yMTQ0NTMyZWRlNDEiLCJjbGllbnRfaWQiOiJhcGktY2xpZW50In0.mE8WnaGzVuWhS5LfT0ajQcBr_JP2TUOVfhch-5dJ6mA";
+
 String v1token = "";
 String vendorName = "";
 String vendorFaceTypeId = "";
 
-
-String Weather_APIKEY = "CWB-D203008C-2640-4F20-A839-CD3708D26517";
-String Weather_URL = "https://opendata.cwb.gov.tw/api/v1/rest/datastore/F-D0047-005?Authorization=$Weather_APIKEY&format=JSON&locationName=%town&elementName=Wx,AT";
 
 
 
