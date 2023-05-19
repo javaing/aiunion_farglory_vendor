@@ -52,34 +52,37 @@ class _LoginPageState extends State<LoginPage> {
 
   //歡迎使用智慧工地平台
   Widget InputAccount() {
-    return TextFormField(
-      controller: _usernameController,
-      decoration: const InputDecoration(
-        hintText: '帳號',
-      ),
-      validator: (value) {
-        if (value == null || value.isEmpty) {
-          return '請輸入帳號';
-        }
-        return null;
-      },
-    );
+    return Padding(padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
+      child: TextFormField(
+        controller: _usernameController,
+        decoration: const InputDecoration(
+          hintText: '帳號',
+        ),
+        validator: (value) {
+          if (value == null || value.isEmpty) {
+            return '請輸入帳號';
+          }
+          return null;
+        },
+      ),);
+
   }
 
   Widget InputPassword() {
-    return TextFormField(
-      controller: _passwordController,
-      decoration: const InputDecoration(
-        hintText: '密碼',
-      ),
-      validator: (value) {
-        if (value == null || value.isEmpty) {
-          return '請輸入密碼';
-        }
-        return null;
-      },
-      obscureText: true,
-    );
+    return Padding(padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
+      child: TextFormField(
+        controller: _passwordController,
+        decoration: const InputDecoration(
+          hintText: '密碼',
+        ),
+        validator: (value) {
+          if (value == null || value.isEmpty) {
+            return '請輸入密碼';
+          }
+          return null;
+        },
+        obscureText: true,
+      ),);
   }
 
   Future<void> v1login(String acct, String pwd) async {
@@ -87,17 +90,27 @@ class _LoginPageState extends State<LoginPage> {
     //Observable<LoginResult> v1login(@Body LoginBody loginBody);
     //{"type":"manager","username":"admin","password":"admin","remember":true}
     //{"code": 200, "result": {"token": "2d4db94a241e4be9eb2be3e6651eb7a6"}}
-    var response = (await dio.post('http://'+ HOST +'/api/v1/session/login', data: {"type":"manager","username":acct,"password":pwd,"remember":true}));
-    print("art response=" +response.toString());
-    V1LoginResponse v1 = v1LoginResponseFromJson(response.toString()) ;
-    if(v1.result!.token != null) {
-      print("art token=" + v1.result!.token!);
-      v1token = v1.result!.token!;
-      gotoNextPage();
-    } else {
-      showMsg(context, "login in fail");
+    try {
+      var response = await dio.post(makeUrl('/api/v1/session/login'), data: {"type":"manager","username":acct,"password":pwd,"remember":true});
+      //print("art response=" +response.toString());
+      V1LoginResponse v1 = v1LoginResponseFromJson(response.toString());
+      if(v1.result!.token != null) {
+            //print("art token=" + v1.result!.token!);
+            v1token = v1.result!.token!;
+            vendorAccount = acct;
+            gotoNextPage();
+          } else {
+            show("登入失敗 login in fail");
+          }
+    } catch (e) {
+      print(e);
+      show("請確定網路連線");
     }
 
+  }
+
+  void show(String msg) {
+    showMsg(context, msg);
   }
 
   void gotoNextPage() {
@@ -105,7 +118,7 @@ class _LoginPageState extends State<LoginPage> {
       MaterialPageRoute(builder: (context) => const MainMenuPage()),
     );
   }
-  
+
   Widget submit() {
     return ElevatedButton(
       onPressed: () {
@@ -113,38 +126,46 @@ class _LoginPageState extends State<LoginPage> {
           v1login(_usernameController.text, _passwordController.text);
         }
       },
-      child: const Text('登入'),
+      child: const Text('登入',style: TextStyle(
+        fontSize: 22,
+      )),
     );
   }
-  
+
   Widget DIV() {
     return const SizedBox(height: 20.0);
   }
 
   @override
   Widget build(BuildContext context) {
+    Widget col1 = Column(
+      children: <Widget>[
+        welcome(),
+        DIV(),
+        InputAccount(),
+        DIV(),
+        InputPassword(),
+        DIV(),
+        submit(),
+        DIV(),
+        //Expanded(child: assetImageWidth('land_logo.png', 300)),
+      ],
+    );
+
+
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('包商管理'),
-      ),
-      body: SingleChildScrollView(child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            children: <Widget>[
-              welcome(),
-              DIV(),
-              InputAccount(),
-              DIV(),
-              InputPassword(),
-              DIV(),
-              submit(),
-            ],
-          ),
-        ),
-      ),
-      )
+        appBar: AppBar(
+        title: Text('包商管理  $version'),
+    ),
+    body: Form(
+    key: _formKey,
+    child: Column(
+    children: <Widget>[
+    Expanded(child: Container(child: col1,)),
+    assetImageWidth('land_logo.png', 150),
+    //Expanded(child: assetImageWidth('land_logo.png', 300)),
+    ],
+    ),)
     );
   }
 }

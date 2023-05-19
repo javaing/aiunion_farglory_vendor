@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 
 void showMsg(BuildContext context,String msg) {
@@ -14,10 +16,10 @@ void showMsg(BuildContext context,String msg) {
           elevation: 4,
           shape: const RoundedRectangleBorder(
               borderRadius: BorderRadius.all(Radius.circular(8.0))),
-          content: Text(style: const TextStyle(fontSize: 25), msg),
+          content: Text(style: const TextStyle(fontSize: 22), msg),
           actions: <Widget>[
             TextButton(
-              child: const Text(style: TextStyle(fontSize: 25),"OK"),
+              child: const Text(style: TextStyle(fontSize: 22),"OK"),
               onPressed: (){
                 //Navigator.of(context).pop();
                 Navigator.pop(context,true);
@@ -103,6 +105,14 @@ Image getAssetImageSize(String name, double size) {
   );
 }
 
+Image assetImageWidth(String name, double size) {
+  return Image.asset(
+    'images/$name',
+    width: size,
+    fit: BoxFit.contain,
+  );
+}
+
 String getLocaleWeekDay(int weekday) {
   List<String> name = ['', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六','星期日'];
   return name[weekday % name.length];
@@ -119,4 +129,21 @@ List<String> toStringList(List<int> intList) {
 T randomListItem<T>(List<T> lst) {
   Random rnd = Random();
   return lst[rnd.nextInt(lst.length)];
+}
+
+
+Future<String?> networkImageToBase64(String imageUrl) async {
+  http.Response response = await http.get(Uri.parse(imageUrl));
+  if (response.statusCode == 200) {
+    final bytes = response?.bodyBytes;
+    if (bytes != null) {
+      String encodedString = base64Encode(bytes);
+      return encodedString;
+    } else {
+      return null;
+    }
+  } else {
+    print('art call $imageUrl fail! code: $response.statusCode');
+    return null;
+  }
 }

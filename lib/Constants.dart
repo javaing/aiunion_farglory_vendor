@@ -7,12 +7,16 @@ final String DEFAULT_HOST = "192.168.0.109";
 String HOST = DEFAULT_HOST;
 final String V2_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOlsiZmFjZWFpIl0sInNjb3BlIjpbImFwaS1zZXJ2aWNlIl0sImV4cCI6MTkyMTE1MzI1OCwiYXV0aG9yaXRpZXMiOlsiYWl1bmlvbiJdLCJqdGkiOiI3ODI3YTBkYi0zMGQ3LTRhODItYjQyYy0yMTQ0NTMyZWRlNDEiLCJjbGllbnRfaWQiOiJhcGktY2xpZW50In0.mE8WnaGzVuWhS5LfT0ajQcBr_JP2TUOVfhch-5dJ6mA";
 
+String version = "2.0";
 String v1token = "";
+String vendorAccount = "";
 String vendorName = "";
-String vendorFaceTypeId = "";
+int vendorFaceTypeId = 0;
 
 
-
+String makeUrl(String path) {
+  return "http://" + HOST + path;
+}
 
 
 const Color borderColor = Color.fromARGB(255, 224, 224, 224);

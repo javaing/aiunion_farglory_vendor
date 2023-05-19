@@ -1,8 +1,13 @@
 
+import 'dart:convert';
+
 import 'package:far_glory_construction_register/Utils/Utils.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:dio/dio.dart';
 
+import '../Constants.dart';
+import '../FaceViewModel.dart';
 import 'AddNewPage.dart';
 
 
@@ -14,23 +19,30 @@ class MainMenuPage extends StatefulWidget {
 }
 
 class _SampleViewState extends State<MainMenuPage> {
+  FaceViewModel _viewModel = FaceViewModel();
+  String _title = '包商管理';
 
 
 
   @override
-  void initState() {
+  initState() {
     super.initState();
-    
-  }
 
+    _viewModel.loadUserName().then((value) { //ask facetype id, verdor name
+      setState(() {
+        print('art 3' + value);
+        _title = value;
+      });
+    });
+  }
 
   
   @override
   Widget build(BuildContext context) {
-  
+    print('art 0' +_title) ;
     return Scaffold(
       appBar: AppBar(
-        title: Text('包商管理'),
+        title: Text(_title),
       ),
       body: Padding(
         padding: const EdgeInsets.fromLTRB(30,0,30,0),

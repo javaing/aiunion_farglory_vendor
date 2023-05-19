@@ -7,9 +7,9 @@
 
     <application
         android:requestLegacyExternalStorage="false"
-        android:label="far_glory_construction_register"
+        android:label="工班註冊"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/ic_logo">
         <activity
             android:name=".MainActivity"
             android:exported="true"

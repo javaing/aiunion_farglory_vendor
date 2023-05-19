@@ -11,9 +11,11 @@ import 'package:far_glory_construction_register/datamodel/ServerFaceType.dart';
 import 'package:far_glory_construction_register/datamodel/ServerSetting.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dialogs/flutter_dialogs.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:cross_file_image/cross_file_image.dart';
 import '../Constants.dart';
+import '../FaceViewModel.dart';
 import 'MainMenu.dart';
 //import 'package:progress_dialog/progress_dialog.dart';
 
@@ -26,9 +28,10 @@ class AddNewPage extends StatefulWidget {
 }
 
 class _SampleViewState extends State<AddNewPage> {
+  FaceViewModel _viewModel = FaceViewModel();
   final dio = Dio();
   List<String> worktitle = <String>[""];
-  List<String> workcompany = <String>[""];
+  //List<String> workcompany = <String>[""];
   List<String> faceTypeID = <String>[""];
   List<String> faceTypeName = <String>[""];
 
@@ -47,7 +50,7 @@ class _SampleViewState extends State<AddNewPage> {
     super.initState();
     //initCamera();
     loadSetting();
-    loadFaceType();
+    //loadFaceType();
     _validDateController.text = '2023/5/1 ~ 2023/7/31';
   }
 
@@ -68,44 +71,9 @@ class _SampleViewState extends State<AddNewPage> {
       ServerSetting setting = serverSettingFromJson(response.toString()) ;
 
       worktitle = parseSetting(setting.result! , "工種");
-      workcompany = parseSetting(setting.result! , "承包商");
+      //workcompany = parseSetting(setting.result! , "承包商");
 
       _selectedWorktitle = worktitle[0];
-    });
-
-  }
-  /*
- "id": 5,
-"name": "遠雄營造 - 夏沐",
-"threshold": 70,
-"description": null,
-"faceCount": 940,
-"photoCount": 940,
-"rtcEnabled": true,
-"dynamic": true
-  */
-  void loadFaceType() async {
-    var url = "http://192.168.0.109/api/v2/face-types?pageSize=1000";
-    var response = await dio.get(url);
-    setState(() {
-      //print('art find ' + response.toString() );
-
-      ServerFaceType setting = serverFaceTypeFromJson(response.toString()) ;
-
-      if(setting!=null) {
-        setting.result?.forEach((element) {
-          faceTypeID.add(element.id!.toString());
-          faceTypeName.add(element.name!.toString());
-        });
-        //print('art find ' + faceTypeID.toString());
-        //print('art find ' + faceTypeName.toString());
-        //print('art find 3 faceType');
-        if(vendorName.isEmpty) {
-          vendorName = faceTypeName[1];
-          vendorFaceTypeId = faceTypeID[1];
-        }
-      }
-
     });
 
   }
@@ -136,7 +104,10 @@ class _SampleViewState extends State<AddNewPage> {
       w = SizedBox(
           width: 120,
           //height: 200,
-          child: Image(image: XFileImage(xf!))
+          child:  ClipRRect(
+            borderRadius: BorderRadius.circular(4.0),
+            child: Image(image: XFileImage(xf!)),
+          ),
       );
     } else {
       w =  Container(
@@ -180,26 +151,137 @@ class _SampleViewState extends State<AddNewPage> {
       return;
     }
 
+    FocusManager.instance.primaryFocus?.unfocus();
+
+    List<int> imageBytes = await XFileImage(xf!).file.readAsBytes();
+    base64Image = base64Encode(imageBytes);
+
+    List<dynamic> result = await _viewModel.getSimilarImage(base64Image!);
+    print('art await getQuerytokenByImage ' + result.toString());
+    if(result.isEmpty) {
+      sendReg();
+    } else {
+      showSimilarDialog(context, result);
+    }
+
+
+
+  }
+
+  String maskName(String name) {
+    return "${name.substring(0,1)} * ${name.substring(2)}";
+  }
+  String format(double n) {
+    return n.toStringAsFixed(n.truncateToDouble() == n ? 0 : 2);
+  }
+  String makeText(Map<String,dynamic> map) {
+    return maskName(map['person'].toString()) + "\n" + format(map['similarity'] as double) + "%";
+  }
+
+  void showSimilarDialog(BuildContext context, List<dynamic> items) {
+    double height = MediaQuery.of(context).size.height;
+    double width = MediaQuery.of(context).size.width;
+
+
+    Widget w = ListView.builder(
+      scrollDirection: Axis.vertical,
+      itemCount: items.length,
+      itemBuilder: (context, index) {
+        return Column(children: [
+          Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(4.0),
+              child: getUrlImage2( makeUrl((items[index] as Map<String,dynamic>)["photo"].toString()),120 ),
+            ),
+            const SizedBox(width: 10,),
+            Center(child: Text( makeText(items[index] as Map<String,dynamic>) ),),
+          ],
+        ),
+          const SizedBox(height: 10,),
+        ]);
+
+      },
+    );
+
+    Widget box = SizedBox(height: height*0.7,
+        width: width * 0.9,
+      child: w,);
+
+    showPlatformDialog(
+      context: context,
+      builder: (_) => BasicDialogAlert(
+        title: const Text('已有相似資料'),
+        content: box,
+        actions: <Widget>[
+          BasicDialogAction(
+            onPressed: () {
+              Navigator.pop(context);
+            },
+            title: const Text('取消'),
+          ),
+          BasicDialogAction(
+            onPressed: () {
+              gotoAdd(items[0]);
+            },
+            title: const Text('在既有紀錄加臉'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> gotoAdd(dynamic item) async {
+    print('art input ' + item.toString());
+    var result = await _viewModel.goAddFace(item, base64Image!);
+    if(result!="OK") {
+      showMsg(context, result);
+      Navigator.of(context).pop();
+    } else {
+      exitDailog('加臉成功');
+    }
+  }
+
+  void exitDailog(String msg) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          content: Text(msg),
+          actions: [
+            TextButton(
+              child: Text('OK'),
+              onPressed: () {
+                dismissDialogThenBack();
+              },
+            ),
+          ],
+        );
+      },
+    );
+
+  }
+
+
+  Future<void> sendReg() async {
     // show the loading dialog
     showDialog(
       // The user CANNOT close this dialog  by pressing outsite it
         barrierDismissible: false,
         context: context,
         builder: (_) {
-          return Dialog(
-            // The background color
+          return const Dialog(
             backgroundColor: Colors.white,
             child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 20),
+              padding: EdgeInsets.symmetric(vertical: 20),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
-                children: const [
-                  // The loading indicator
+                children: [
                   CircularProgressIndicator(),
                   SizedBox(
                     height: 15,
                   ),
-                  // Some text
                   Text('Loading...')
                 ],
               ),
@@ -207,13 +289,10 @@ class _SampleViewState extends State<AddNewPage> {
           );
         });
 
-    List<int> imageBytes = await XFileImage(xf!).file.readAsBytes();
-    base64Image = base64Encode(imageBytes);
-
     var params =  {
-      "company": vendorName,
+      "company": vendorAccount,
       "enabled": true,
-      "faceTypeId": int.parse(vendorFaceTypeId),
+      "faceTypeId": vendorFaceTypeId,
       "name": _usernameController.text,
       "phone": _phoneNumberController.text,
       "photoInBase64String": base64Image,
@@ -226,68 +305,52 @@ class _SampleViewState extends State<AddNewPage> {
         HttpHeaders.contentTypeHeader: "application/json",
         HttpHeaders.authorizationHeader: "Bearer " + V2_TOKEN
       }, validateStatus: (statusCode){
-          if(statusCode == null){
-            return false;
-          }
-          if(statusCode == 400||statusCode == 409||statusCode == 500){ // your http status code
-            return true;
-          }else{
-            return statusCode >= 200 && statusCode < 300;
-          }
-        },),
+        if(statusCode == null){
+          return false;
+        }
+        if(statusCode == 400||statusCode == 409||statusCode == 500){ // your http status code
+          return true;
+        }else{
+          return statusCode >= 200 && statusCode < 300;
+        }
+      },),
       data: jsonEncode(params),
     );
 
     Navigator.pop(context);
 
-    // Close the dialog programmatically
-    // We use "mounted" variable to get rid of the "Do not use BuildContexts across async gaps" warning
-    //if (!mounted) return;
-
     setState(() {
-    print('art response '+ response.statusCode.toString() +', ' + response.toString());
-    if(response.statusCode==200) {
-      showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              content: Text('新增成功'),
-              actions: <Widget>[
-                TextButton(
-                  child: Text('OK'),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                    Navigator.push(context,
-                      MaterialPageRoute(builder: (context) => const MainMenuPage()),
-                    );
-                  },
-                ),
-              ],
-            );
-          });
-    } else if(response.statusCode==400) {
-      showMsg(context, '新增失敗, 照片有誤');
-    } else {
-      showMsg(context, '新增失敗 ' +(response.statusMessage??"") );
-    }
-    //Navigator.of(context).pop();
-
+      //print('art response '+ response.statusCode.toString() +', ' + response.toString());
+      if(response.statusCode==200) {
+        showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                content: Text('新增成功'),
+                actions: <Widget>[
+                  TextButton(
+                    child: Text('OK'),
+                    onPressed: () {
+                      dismissDialogThenBack();
+                    },
+                  ),
+                ],
+              );
+            });
+      } else if(response.statusCode==400) {
+        showMsg(context, '新增失敗, 照片有誤');
+      } else {
+        showMsg(context, '新增失敗 ' +(response.statusMessage??"") );
+      }
     });
-
-
-    // var resp = jsonDecode(response.toString());
-    // if(resp.containsKey('id') && resp.containsKey('photoUri')) {
-    //   //showMsg(context, '新增成功');
-    //
-    //
-    //
-    // } else {
-    //   showMsg(context, '新增失敗');
-    // }
-
-
   }
 
+  void dismissDialogThenBack() {
+    Navigator.of(context).pop();
+    Navigator.push(context,
+      MaterialPageRoute(builder: (context) => const MainMenuPage()),
+    );
+  }
 
 
   Widget page() {
@@ -386,7 +449,7 @@ class _SampleViewState extends State<AddNewPage> {
       onPressed: () {
         postToserver();
       },
-      child: Text('新增'),
+      child: const Text('新增'),
     );
     Widget btn2 = ElevatedButton(
       style: ElevatedButton.styleFrom(
@@ -395,12 +458,12 @@ class _SampleViewState extends State<AddNewPage> {
       onPressed: () {
         Navigator.pop(context);
       },
-      child: Text('取消'),
+      child: const Text('取消'),
     );
     return Row(children: [
-      Expanded(child: btn1, flex: 1,),
-      SizedBox(width: 5,),
-      Expanded(child: btn2, flex: 1,),
+      Expanded(flex: 1,child: btn1,),
+      const SizedBox(width: 5,),
+      Expanded(flex: 1,child: btn2,),
     ],);
   }
 
@@ -408,6 +471,7 @@ class _SampleViewState extends State<AddNewPage> {
     return SizedBox(height: 20,);
   }
 
+  //處理拍照
   OpenPicker(ImageSource source) async
   {
     //print('art image go!');
