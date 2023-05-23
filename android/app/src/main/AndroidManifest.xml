@@ -7,7 +7,7 @@
 
     <application
         android:requestLegacyExternalStorage="false"
-        android:label="工班註冊"
+        android:label="智慧工班註冊"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_logo">
         <activity

@@ -65,8 +65,7 @@ class _SampleViewState extends State<AddNewPage> {
 },
    */
   void loadSetting() async {
-    var url = "http://192.168.0.109/api/v2/settings?pageSize=1000";
-    var response = await dio.get(url);
+    var response = await dioV2Get(dio, "/api/v2/settings?pageSize=1000");
     setState(() {
       ServerSetting setting = serverSettingFromJson(response.toString()) ;
 

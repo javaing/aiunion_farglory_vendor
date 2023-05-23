@@ -1,11 +1,15 @@
+import 'dart:io';
 import 'dart:math';
 
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+
+import '../Constants.dart';
 
 
 void showMsg(BuildContext context,String msg) {
@@ -146,4 +150,38 @@ Future<String?> networkImageToBase64(String imageUrl) async {
     print('art call $imageUrl fail! code: $response.statusCode');
     return null;
   }
+}
+
+Future<Response> dioV2Get(Dio dio, String path) {
+  return dio.get(makeUrl(path),
+    options: Options(headers: {
+      HttpHeaders.contentTypeHeader: "application/json",
+      HttpHeaders.authorizationHeader: "Bearer $V2_TOKEN"
+    }, validateStatus: (statusCode){
+      if(statusCode == null){
+        return false;
+      }
+      if(statusCode == 400||statusCode == 405||statusCode == 500){ // your http status code
+        return true;
+      }else{
+        return statusCode >= 200 && statusCode < 300;
+      }
+    },),);
+}
+
+Future<Response> dioV1Get(Dio dio, String path) {
+  return dio.get(makeUrl(path),
+    options: Options(headers: {
+      HttpHeaders.contentTypeHeader: "application/json",
+      HttpHeaders.authorizationHeader: "Bearer $v1token"
+    }, validateStatus: (statusCode){
+      if(statusCode == null){
+        return false;
+      }
+      if(statusCode == 400||statusCode == 405||statusCode == 500){ // your http status code
+        return true;
+      }else{
+        return statusCode >= 200 && statusCode < 300;
+      }
+    },),);
 }

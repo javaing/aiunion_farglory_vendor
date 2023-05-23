@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:dio/dio.dart';
+import 'package:far_glory_construction_register/Utils/Utils.dart';
 
 import 'Constants.dart';
 
@@ -80,7 +81,7 @@ class FaceViewModel {
 "face": null
 },
      */
-    var response = await dio.get(makeUrl('/api/users/'));
+    var response = await dioV2Get(dio, '/api/users/');
     Map map = jsonDecode(response.toString());
     //print("art map=" + map.toString());
     var code = map["code"];
@@ -184,7 +185,7 @@ class FaceViewModel {
      */
   Future<List<dynamic>> getSimilarFace(int queryToken) async {
     // api/v1/query/{queryTokn}
-    var response = await dio.get(makeUrl('/api/v1/query/$queryToken'));
+    var response = await dioV1Get(dio, '/api/v1/query/$queryToken');
     if(response.statusCode==200) {
       Map map = jsonDecode(response.toString());
       List result = map["result"];
