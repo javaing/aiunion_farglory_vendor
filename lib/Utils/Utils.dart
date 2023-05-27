@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:http/http.dart' as http;
@@ -152,6 +153,11 @@ Future<String?> networkImageToBase64(String imageUrl) async {
   }
 }
 
+String makeUrl(String path) {
+  print("http://" + HOST + path);
+  return "http://" + HOST + path;
+}
+
 Future<Response> dioV2Get(Dio dio, String path) {
   return dio.get(makeUrl(path),
     options: Options(headers: {
@@ -178,10 +184,111 @@ Future<Response> dioV1Get(Dio dio, String path) {
       if(statusCode == null){
         return false;
       }
-      if(statusCode == 400||statusCode == 405||statusCode == 500){ // your http status code
+      if(statusCode == 400||statusCode == 404||statusCode == 405||statusCode == 500){ // your http status code
         return true;
       }else{
         return statusCode >= 200 && statusCode < 300;
       }
-    },),);
+    },),
+  );
+}
+
+Future<Response> dioV1postNoToken(Dio dio, String path, Map<String, dynamic> param) {
+  print('art v1token=' + v1token);
+  return dio.post(makeUrl(path),
+      options: Options(headers: {
+        HttpHeaders.contentTypeHeader: "application/json",
+      }, validateStatus: (statusCode){
+        if(statusCode == null){
+          return false;
+        }
+        if(statusCode == 400||statusCode == 404||statusCode == 405||statusCode == 500){ // your http status code
+          return true;
+        }else{
+          return statusCode >= 200 && statusCode < 300;
+        }
+      },),
+      data: param);
+}
+
+Future<Response> dioV1post(Dio dio, String path, Map<String, dynamic> param) {
+  //print('art v1token=' + v1token);
+  print('art param=' + param.toString());
+
+  saveFile( jsonEncode(param));
+  
+
+  return dio.post(makeUrl(path),
+      options: Options(headers: {
+        HttpHeaders.contentTypeHeader: "application/json",
+        HttpHeaders.authorizationHeader: "Bearer $v1token"
+      }, validateStatus: (statusCode){
+        if(statusCode == null){
+          return false;
+        }
+        if(statusCode == 400||statusCode == 404||statusCode == 405||statusCode == 500){ // your http status code
+          return true;
+        }else{
+          return statusCode >= 200 && statusCode < 300;
+        }
+      },),
+      data: param);
+}
+
+Future<Response> dioV2PostNoToken(Dio dio, String path, Map<String, dynamic> param) {
+  return dio.post(makeUrl(path),
+    options: Options(headers: {
+      HttpHeaders.contentTypeHeader: "application/json",
+      //HttpHeaders.authorizationHeader: "Bearer " + V2_TOKEN
+    }, validateStatus: (statusCode) {
+      if (statusCode == null) {
+        return false;
+      }
+      if (statusCode == 400 || statusCode == 409 ||
+          statusCode == 500) { // your http status code
+        return true;
+      } else {
+        return statusCode >= 200 && statusCode < 300;
+      }
+    },),
+    data: param,
+  );
+}
+
+Future<Response> dioV2post(Dio dio, String path, Map<String, dynamic> param) {
+  return dio.post(makeUrl(path),
+    options: Options(headers: {
+      HttpHeaders.contentTypeHeader: "application/json",
+      HttpHeaders.authorizationHeader: "Bearer " + V2_TOKEN
+    }, validateStatus: (statusCode){
+      if(statusCode == null){
+        return false;
+      }
+      if(statusCode == 400||statusCode == 409||statusCode == 500){ // your http status code
+        return true;
+      }else{
+        return statusCode >= 200 && statusCode < 300;
+      }
+    },),
+    data: param,
+  );
+}
+
+_write(String text) async {
+  final Directory directory = await getApplicationDocumentsDirectory();
+  final File file = File('${directory.path}/test.txt');
+  await file.writeAsString(text);
+}
+
+Future<String> getFilePath() async {
+  Directory appDocumentsDirectory = await getApplicationDocumentsDirectory(); // 1
+  String appDocumentsPath = appDocumentsDirectory.path; // 2
+  String filePath = '$appDocumentsPath/test123.txt'; // 3
+
+  return filePath;
+}
+
+void saveFile(String str) async {
+  File file = File(await getFilePath()); // 1
+  file.writeAsString("This is my demo text that will be saved to : demoTextFile.txt"); // 2
 }

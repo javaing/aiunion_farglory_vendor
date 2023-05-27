@@ -2,21 +2,26 @@
 import 'dart:ui';
 
 
-final String DEFAULT_HOST = "192.168.0.109";
+final String DEFAULT_HOST = "192.168.0.204";
 //final String DEFAULT_HOST = "60.250.33.237";
+//final String DEFAULT_HOST = "60.250.33.237:60109";
 String HOST = DEFAULT_HOST;
-final String V2_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOlsiZmFjZWFpIl0sInNjb3BlIjpbImFwaS1zZXJ2aWNlIl0sImV4cCI6MTkyMTE1MzI1OCwiYXV0aG9yaXRpZXMiOlsiYWl1bmlvbiJdLCJqdGkiOiI3ODI3YTBkYi0zMGQ3LTRhODItYjQyYy0yMTQ0NTMyZWRlNDEiLCJjbGllbnRfaWQiOiJhcGktY2xpZW50In0.mE8WnaGzVuWhS5LfT0ajQcBr_JP2TUOVfhch-5dJ6mA";
+String V2_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOlsiZmFjZWFpIl0sInNjb3BlIjpbImFwaS1zZXJ2aWNlIl0sImV4cCI6MTkyMTE1MzI1OCwiYXV0aG9yaXRpZXMiOlsiYWl1bmlvbiJdLCJqdGkiOiI3ODI3YTBkYi0zMGQ3LTRhODItYjQyYy0yMTQ0NTMyZWRlNDEiLCJjbGllbnRfaWQiOiJhcGktY2xpZW50In0.mE8WnaGzVuWhS5LfT0ajQcBr_JP2TUOVfhch-5dJ6mA";
 
-String version = "2.0";
-String v1token = "";
+// String default_user = 'vendor';
+// String default_pass = 'vendor';
+ String default_user = 'admin';
+ String default_pass = 'admin';
+List<int> allowChooseUsers = [1,2,4];
+
+String version = "1.1";
+String v1token = "b86ab7e0ee58b99124a9f4a331056849";
 String vendorAccount = "";
-String vendorName = "";
+int roleId = 0;
+String roleName = "";
+String vendorFacetypeName = "";
 int vendorFaceTypeId = 0;
 
-
-String makeUrl(String path) {
-  return "http://" + HOST + path;
-}
 
 
 const Color borderColor = Color.fromARGB(255, 224, 224, 224);

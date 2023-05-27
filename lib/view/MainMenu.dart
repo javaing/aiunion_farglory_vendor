@@ -10,7 +10,11 @@ import '../Constants.dart';
 import '../FaceViewModel.dart';
 import 'AddNewPage.dart';
 
-
+/*
+  vendor:限定臉庫
+  admin, root, faceadmin: 可選臉庫
+  other: 沒有功能
+ */
 class MainMenuPage extends StatefulWidget {
   const MainMenuPage({super.key});
 
@@ -20,7 +24,7 @@ class MainMenuPage extends StatefulWidget {
 
 class _SampleViewState extends State<MainMenuPage> {
   FaceViewModel _viewModel = FaceViewModel();
-  String _title = '包商管理';
+  String _title = '歡迎使用';
 
 
 
@@ -28,18 +32,21 @@ class _SampleViewState extends State<MainMenuPage> {
   initState() {
     super.initState();
 
-    _viewModel.loadUserName().then((value) { //ask facetype id, verdor name
-      setState(() {
-        print('art 3' + value);
-        _title = value;
+    if(_title == '歡迎使用') {
+      _viewModel.loadUserName().then((value) { //ask facetype id, verdor name
+        setState(() {
+          //print('art 3' + value);
+          if(value=="OK")
+            _title = roleName;
+        });
       });
-    });
+    }
   }
 
   
   @override
   Widget build(BuildContext context) {
-    print('art 0' +_title) ;
+    //print('art 0' +_title) ;
     return Scaffold(
       appBar: AppBar(
         title: Text(_title),

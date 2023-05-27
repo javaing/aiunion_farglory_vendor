@@ -1,7 +1,6 @@
 
 import 'dart:convert';
 import 'dart:core';
-import 'dart:io' as Io;
 import 'dart:io';
 
 import 'package:camera/camera.dart';
@@ -20,6 +19,11 @@ import 'MainMenu.dart';
 //import 'package:progress_dialog/progress_dialog.dart';
 
 
+/*
+  vendor:限定臉庫
+  admin, root, faceadmin: 可選臉庫
+  other: 沒有功能
+ */
 class AddNewPage extends StatefulWidget {
   const AddNewPage({super.key});
 
@@ -40,18 +44,39 @@ class _SampleViewState extends State<AddNewPage> {
   final _workTitleController = TextEditingController();
   final _validDateController = TextEditingController();
   String _selectedWorktitle = '';
+  FaceType? _selectedFaceLib = null;
 
   XFile? xf = null;
   String? base64Image = null;
-
+  List<FaceType> faceLibs = [];
 
   @override
   void initState() {
     super.initState();
-    //initCamera();
-    loadSetting();
-    //loadFaceType();
-    _validDateController.text = '2023/5/1 ~ 2023/7/31';
+
+    if(isAllowChooseFaceLib()) {
+      loadFacelib();
+      //showMsg(context, "loadFaceType()");
+    } else {
+      loadSetting();
+    }
+
+    setState(() {
+      _validDateController.text = '2023/5/1 ~ 2023/7/31';
+
+    });
+  }
+
+  bool isAllowChooseFaceLib() {
+    return allowChooseUsers.contains(roleId);
+  }
+
+  Future<void> loadFacelib() async {
+    var resp = await _viewModel.loadFaceType() ?? [];
+    setState(() {
+      faceLibs = resp;
+      print('art 0527 load faceLib fnish');
+    });
   }
 
   /*
@@ -69,12 +94,11 @@ class _SampleViewState extends State<AddNewPage> {
     setState(() {
       ServerSetting setting = serverSettingFromJson(response.toString()) ;
 
+      //print('art debug ' + response.toString());
       worktitle = parseSetting(setting.result! , "工種");
-      //workcompany = parseSetting(setting.result! , "承包商");
-
       _selectedWorktitle = worktitle[0];
+      //workcompany = parseSetting(setting.result! , "承包商");
     });
-
   }
 
 
@@ -134,6 +158,13 @@ class _SampleViewState extends State<AddNewPage> {
     );
   }
 
+  int getFaceId() {
+    int facetypeId = vendorFaceTypeId;
+    if(isAllowChooseFaceLib()) {
+      facetypeId = _selectedFaceLib?.id ?? faceLibs[0].id!;
+    }
+    return facetypeId;
+  }
 
   void postToserver() async {
     //check
@@ -150,12 +181,16 @@ class _SampleViewState extends State<AddNewPage> {
       return;
     }
 
+    int facetypeId = getFaceId();
+
     FocusManager.instance.primaryFocus?.unfocus();
 
     List<int> imageBytes = await XFileImage(xf!).file.readAsBytes();
+    //base64Image = "data:image/jpeg;base64," +  base64Encode(imageBytes);
     base64Image = base64Encode(imageBytes);
+    print('art await ' + base64Image!);
 
-    List<dynamic> result = await _viewModel.getSimilarImage(base64Image!);
+    List<dynamic> result = await _viewModel.getSimilarImage(base64Image!, facetypeId);
     print('art await getQuerytokenByImage ' + result.toString());
     if(result.isEmpty) {
       sendReg();
@@ -288,38 +323,37 @@ class _SampleViewState extends State<AddNewPage> {
           );
         });
 
+    int faceTypeid = getFaceId();
     var params =  {
       "company": vendorAccount,
       "enabled": true,
-      "faceTypeId": vendorFaceTypeId,
+      "faceTypeId": faceTypeid,
       "name": _usernameController.text,
       "phone": _phoneNumberController.text,
       "photoInBase64String": base64Image,
       "title": _selectedWorktitle,
     };
-    //print(params);
+    if(isAllowChooseFaceLib()) {
+      params =  {
+        "enabled": true,
+        "faceTypeId": faceTypeid,
+        "name": _usernameController.text,
+        "phone": _phoneNumberController.text,
+        "photoInBase64String": base64Image,
+      };
+    }
+    print(params);
 
-    Response response = await dio.post('http://$HOST/api/face/photoString',
-      options: Options(headers: {
-        HttpHeaders.contentTypeHeader: "application/json",
-        HttpHeaders.authorizationHeader: "Bearer " + V2_TOKEN
-      }, validateStatus: (statusCode){
-        if(statusCode == null){
-          return false;
-        }
-        if(statusCode == 400||statusCode == 409||statusCode == 500){ // your http status code
-          return true;
-        }else{
-          return statusCode >= 200 && statusCode < 300;
-        }
-      },),
-      data: jsonEncode(params),
-    );
+    Response response = await dioV2post(dio, '/api/face/photoString', params);
 
     Navigator.pop(context);
 
     setState(() {
-      //print('art response '+ response.statusCode.toString() +', ' + response.toString());
+      print('art response '+ response.statusCode.toString() +', ' + response.toString());
+      if(response.toString()==null) {
+        showMsg(context, '新增失敗, 照片有誤');
+        return;
+      }
       if(response.statusCode==200) {
         showDialog(
             context: context,
@@ -352,7 +386,7 @@ class _SampleViewState extends State<AddNewPage> {
   }
 
 
-  Widget page() {
+  Widget vendorPage() {
     //姓名 請填 電話號碼 工種 通勤期間 通勤區域 照片
     Widget col1 = Column(children: [
       TextFormField(
@@ -375,38 +409,26 @@ class _SampleViewState extends State<AddNewPage> {
         ),
       ),
       DIV(),
-      Row(children: [
-        Text('*工種', style: TextStyle(fontSize: 18,)),
-        SizedBox(width: 30,),
-        DropdownButton<String>(
-          items: worktitle.map<DropdownMenuItem<String>>((String value) {
-            return DropdownMenuItem<String>(
-              value: value,
-              child: Text(value),
-            );
-          }).toList(),
-          value: _selectedWorktitle,
-          onChanged: (String? newValue) {
-            setState(() {
-              _selectedWorktitle = newValue!;
-            });
-          },),
-      ],),
+        Row(children: [
+          Text('*工種', style: TextStyle(fontSize: 18,)),
+          SizedBox(width: 30,),
+          DropdownButton<String>(
+            items: worktitle.map<DropdownMenuItem<String>>((String value) {
+              return DropdownMenuItem<String>(
+                value: value,
+                child: Text(value),
+              );
+            }).toList(),
+            value: _selectedWorktitle,
+            onChanged: (String? newValue) {
+              setState(() {
+                _selectedWorktitle = newValue!;
+              });
+            },),
+        ],),
 
-      // TextFormField(
-      //   controller: _workTitleController,
-      //   decoration: const InputDecoration(
-      //     hintText: '工種',
-      //   ),
-      //   validator: (value) {
-      //     if (value == null || value.isEmpty) {
-      //       return '請填工種';
-      //     }
-      //   },
-      // ),
-      // SizedBox(height: 15,),
       DIV(),
-      Row(children: [
+        Row(children: [
         Text( '*通勤期間', style: TextStyle(fontSize: 18,),),
       ],),
       TextFormField(
@@ -415,13 +437,67 @@ class _SampleViewState extends State<AddNewPage> {
           hintText: '通勤期間',
         ),
       ),
-      // SizedBox(height: 15,),
-      // TextFormField(
-      //   controller: _usernameController,
-      //   decoration: const InputDecoration(
-      //     hintText: '通勤區域',
+
+      DIV(),
+      Row(children: [
+        Text( '*照片', style: TextStyle(fontSize: 18,),),
+      ],),
+      preparePhoto(),
+      DIV(),
+      prepareBottom(),
+      // if(base64Image!=null)
+      //   Center(
+      //     child: Image.memory(base64Decode(base64Image!)),
       //   ),
-      // ),
+
+    ],);
+
+    return col1;
+  }
+
+  Widget faceLibPage() {
+    var pick = _selectedFaceLib;
+    if(faceLibs.length>0 && _selectedFaceLib==null ) pick = faceLibs[0];
+
+    Widget col1 = Column(children: [
+        Row(children: [
+          Text('*臉庫', style: TextStyle(fontSize: 18,)),
+          SizedBox(width: 30,),
+          DropdownButton<FaceType>(
+            items: faceLibs.map<DropdownMenuItem<FaceType>>((FaceType value) {
+              return DropdownMenuItem<FaceType>(
+                value: value,
+                child: Text(value.name!),
+              );
+            }).toList(),
+            value: pick ,
+            onChanged: (FaceType? newValue) {
+              setState(() {
+                _selectedFaceLib = newValue!;
+              });
+            },),
+        ],),
+
+      TextFormField(
+        controller: _usernameController,
+        decoration: const InputDecoration(
+          hintText: '*姓名',
+        ),
+        validator: (value) {
+          if (value == null || value.isEmpty) {
+            return '請填姓名';
+          }
+        },
+      ),
+      DIV(),
+
+      TextFormField(
+        controller: _phoneNumberController,
+        decoration: const InputDecoration(
+          hintText: '電話號碼',
+        ),
+      ),
+      DIV(),
       DIV(),
       Row(children: [
         Text( '*照片', style: TextStyle(fontSize: 18,),),
@@ -470,9 +546,14 @@ class _SampleViewState extends State<AddNewPage> {
     return SizedBox(height: 20,);
   }
 
+  debugImage() async {
+
+  }
+
   //處理拍照
   OpenPicker(ImageSource source) async
   {
+
     //print('art image go!');
     xf = await ImagePicker().pickImage(source: source);
     setState(() {
@@ -505,22 +586,28 @@ class _SampleViewState extends State<AddNewPage> {
 
   @override
   Widget build(BuildContext context) {
-    // print('art find 1');
-    // if (!controller!.value.isInitialized) {
-    //   return Container();
-    // }
-    print('art find 1 OK');
+    Widget w;
+    String _title = "";
+    if (isAllowChooseFaceLib()) {
+      _title = '新增人員';
+      w = faceLibPage();
+    }
+    else {
+      _title = '新增工班人員';
+      w = vendorPage();
+    }
+
     return Scaffold(
         appBar: AppBar(
-            title: const Row(
+            title: Row(
               children: [
-                Text('新增工班人員'),
+                Text(_title),
               ],
             )
         ),
         body: SingleChildScrollView(child: Padding(
           padding: const EdgeInsets.all(16.0),
-          child: page(),
+          child: w,
         ),
         )
     );

@@ -1,5 +1,8 @@
 
 
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:far_glory_construction_register/Utils/Utils.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -21,6 +24,8 @@ class _LoginPageState extends State<LoginPage> {
   final _passwordController = TextEditingController();
   final dio = Dio();
 
+  FullScreenDialog _myDialog = new FullScreenDialog();
+
   @override
   void dispose() {
     _usernameController.dispose();
@@ -32,8 +37,8 @@ class _LoginPageState extends State<LoginPage> {
   @override
   void initState() {
     super.initState();
-    _usernameController.text = 'vendor';
-    _passwordController.text = 'vendor';
+    _usernameController.text = default_user;
+    _passwordController.text = default_pass;
   }
 
   Widget welcome() {
@@ -41,12 +46,25 @@ class _LoginPageState extends State<LoginPage> {
       'images/farbackbig.jpg',
       width: double.infinity,
     );
-    Widget w2 = const Text('歡迎使用智慧工地平台\n註冊系統', style: TextStyle(
+
+    Widget w2 = const Text('歡迎使用AI臉辨平台\n註冊系統', style: TextStyle(
       fontSize: 26,
       color: Colors.black87,
     ),);
+
+    //change host
+    Widget gest = GestureDetector(
+        onTap: () {
+          Navigator.push(context, new MaterialPageRoute(
+            builder: (BuildContext context) => _myDialog,
+            fullscreenDialog: true,
+          ));
+        },
+        child: w1
+    );
+
     return Column(children: [
-      w1, w2
+      gest, w2
     ],);
   }
 
@@ -90,18 +108,59 @@ class _LoginPageState extends State<LoginPage> {
     //Observable<LoginResult> v1login(@Body LoginBody loginBody);
     //{"type":"manager","username":"admin","password":"admin","remember":true}
     //{"code": 200, "result": {"token": "2d4db94a241e4be9eb2be3e6651eb7a6"}}
+    Map<String, dynamic> param ={"type":"manager","username":acct,"password":pwd,"remember":true};
     try {
-      var response = await dio.post(makeUrl('/api/v1/session/login'), data: {"type":"manager","username":acct,"password":pwd,"remember":true});
-      //print("art response=" +response.toString());
+      var response = await dioV1postNoToken(dio,
+          '/api/v1/session/login',
+          param);
+      print("art response=" +response.toString());
       V1LoginResponse v1 = v1LoginResponseFromJson(response.toString());
-      if(v1.result!.token != null) {
-            //print("art token=" + v1.result!.token!);
-            v1token = v1.result!.token!;
-            vendorAccount = acct;
-            gotoNextPage();
-          } else {
-            show("登入失敗 login in fail");
-          }
+      if(v1.code==200) {
+        if(v1.result!.token != null) {
+          print("art token=" + v1.result!.token!);
+          v1token = v1.result!.token!;
+          vendorAccount = acct;
+          gotoNextPage();
+          //v2login(acct, pwd);
+        } else {
+          show("登入失敗 login in fail");
+        }
+      } else {
+
+        show(response.toString());
+      }
+
+    } catch (e) {
+      print(e);
+      show("請確定網路連線");
+    }
+
+  }
+
+  Future<void> v2login(String acct, String pwd) async {
+    //{"type":"manager","username":"admin","password":"admin","remember":true}
+    //{"code": 200, "result": {"token": "2d4db94a241e4be9eb2be3e6651eb7a6"}}
+    Map<String, dynamic> param ={"type":"manager","username":acct,"password":pwd,"remember":true};
+    try {
+      var response = await dioV2PostNoToken(dio,
+          '/api/v2/session/login',
+          param);
+      print("art response=" +response.toString());
+      Map<String, dynamic> v1 = jsonDecode(response.toString());
+      if(v1['code']==200) {
+        var token = v1['result']['token'];
+        if(token != null) {
+          print("art v2 token=" + token);
+          V2_TOKEN = token;
+          vendorAccount = acct;
+          //gotoNextPage();
+        } else {
+          show("登入失敗 login in fail");
+        }
+      } else {
+        show(response.toString());
+      }
+      gotoNextPage();
     } catch (e) {
       print(e);
       show("請確定網路連線");
@@ -148,15 +207,16 @@ class _LoginPageState extends State<LoginPage> {
         DIV(),
         submit(),
         DIV(),
-        //Expanded(child: assetImageWidth('land_logo.png', 300)),
+        //Expanded(child: Text(HOST.substring(HOST.length-4), style: const TextStyle(fontSize: 14))),
       ],
     );
 
 
     return Scaffold(
         appBar: AppBar(
-        title: Text('包商管理  $version'),
+        title: Text('臉辨註冊  $version'),
     ),
+        resizeToAvoidBottomInset: false,
     body: Form(
     key: _formKey,
     child: Column(
@@ -168,4 +228,48 @@ class _LoginPageState extends State<LoginPage> {
     ),)
     );
   }
+}
+
+class FullScreenDialog extends StatefulWidget {
+  String _skillOne = "You have";
+  String _skillTwo = "not Added";
+  String _skillThree = "any skills yet";
+
+  @override
+  FullScreenDialogState createState() => new FullScreenDialogState();
+}
+
+class FullScreenDialogState extends State<FullScreenDialog> {
+  TextEditingController _skillOneController = new TextEditingController();
+  TextEditingController _skillTwoController = new TextEditingController();
+
+  TextEditingController _skillThreeController = new TextEditingController();
+
+  @override
+  Widget build(BuildContext context) {
+    _skillThreeController.text = HOST;
+    return Scaffold(
+        appBar: AppBar(
+          title: Text("Setting"),
+        ),
+        body: Padding(padding: const EdgeInsets.symmetric(horizontal: 20.0),child: ListView(
+          children: <Widget>[
+            Text('HOST',),
+            TextField(controller: _skillThreeController,),
+            Row(
+              children: <Widget>[
+                Expanded(child: TextButton(onPressed: () {
+                  HOST = _skillThreeController.text;
+                  widget._skillTwo = _skillTwoController.text;
+                  widget._skillOne = _skillOneController.text;
+                  Navigator.pop(context);
+                }, child: const Text("Save"),))
+              ],
+            )
+          ],
+        ),)
+    );
+  }
+
+
 }
