@@ -555,7 +555,9 @@ class _SampleViewState extends State<AddNewPage> {
   {
 
     //print('art image go!');
-    xf = await ImagePicker().pickImage(source: source);
+    xf = await ImagePicker().pickImage(source: source,
+        maxHeight: 600,    maxWidth: 800,
+        imageQuality: 50);
     setState(() {
       if(xf!=null) {
         print('art image=' + xf!.path);

@@ -2,7 +2,8 @@
 import 'dart:ui';
 
 
-final String DEFAULT_HOST = "192.168.0.204";
+//final String DEFAULT_HOST = "192.168.0.204";
+final String DEFAULT_HOST = "192.168.0.109";
 //final String DEFAULT_HOST = "60.250.33.237";
 //final String DEFAULT_HOST = "60.250.33.237:60109";
 String HOST = DEFAULT_HOST;
@@ -14,7 +15,7 @@ String V2_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOlsiZmFjZWFpIl0s
  String default_pass = 'admin';
 List<int> allowChooseUsers = [1,2,4];
 
-String version = "1.1";
+String version = "1.2";
 String v1token = "b86ab7e0ee58b99124a9f4a331056849";
 String vendorAccount = "";
 int roleId = 0;
