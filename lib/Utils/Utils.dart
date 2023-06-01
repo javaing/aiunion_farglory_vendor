@@ -1,11 +1,11 @@
 import 'dart:io';
 import 'dart:math';
+import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -281,14 +281,18 @@ _write(String text) async {
 }
 
 Future<String> getFilePath() async {
-  Directory appDocumentsDirectory = await getApplicationDocumentsDirectory(); // 1
-  String appDocumentsPath = appDocumentsDirectory.path; // 2
-  String filePath = '$appDocumentsPath/test123.txt'; // 3
-
+  String dir = "";
+  if(Platform.isAndroid) {
+    dir = "/storage/emulated/0/Download";
+  } else if(Platform.isIOS) {
+    dir = (await getApplicationDocumentsDirectory()).path;
+  }
+  String filePath = '$dir/test0531.txt'; // 3
+  print('art filePath=' + filePath);
   return filePath;
 }
 
 void saveFile(String str) async {
   File file = File(await getFilePath()); // 1
-  file.writeAsString("This is my demo text that will be saved to : demoTextFile.txt"); // 2
+  file.writeAsString(str); // 2
 }

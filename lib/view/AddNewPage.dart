@@ -2,8 +2,8 @@
 import 'dart:convert';
 import 'dart:core';
 import 'dart:io';
+import 'dart:typed_data';
 
-import 'package:camera/camera.dart';
 import 'package:dio/dio.dart';
 import 'package:far_glory_construction_register/Utils/Utils.dart';
 import 'package:far_glory_construction_register/datamodel/ServerFaceType.dart';
@@ -11,6 +11,7 @@ import 'package:far_glory_construction_register/datamodel/ServerSetting.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dialogs/flutter_dialogs.dart';
+import 'package:flutter_exif_rotation/flutter_exif_rotation.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:cross_file_image/cross_file_image.dart';
 import '../Constants.dart';
@@ -151,6 +152,9 @@ class _SampleViewState extends State<AddNewPage> {
     }
 
     return GestureDetector(
+        onLongPress: () {
+          OpenPicker(ImageSource.gallery);
+        },
         onTap: () {
           OpenPicker(ImageSource.camera);
         },
@@ -183,12 +187,12 @@ class _SampleViewState extends State<AddNewPage> {
 
     int facetypeId = getFaceId();
 
-    FocusManager.instance.primaryFocus?.unfocus();
+    FocusManager.instance.primaryFocus?.unfocus(); //for hide keyboard
 
     List<int> imageBytes = await XFileImage(xf!).file.readAsBytes();
-    //base64Image = "data:image/jpeg;base64," +  base64Encode(imageBytes);
     base64Image = base64Encode(imageBytes);
-    print('art await ' + base64Image!);
+    base64Image = base64Image!.replaceAll(RegExp(r'\s'), '');
+    saveFile(base64Image!);
 
     List<dynamic> result = await _viewModel.getSimilarImage(base64Image!, facetypeId);
     print('art await getQuerytokenByImage ' + result.toString());
@@ -203,6 +207,7 @@ class _SampleViewState extends State<AddNewPage> {
   }
 
   String maskName(String name) {
+    if(name.length<3) return name;
     return "${name.substring(0,1)} * ${name.substring(2)}";
   }
   String format(double n) {
@@ -554,14 +559,29 @@ class _SampleViewState extends State<AddNewPage> {
   OpenPicker(ImageSource source) async
   {
 
+
     //print('art image go!');
     xf = await ImagePicker().pickImage(source: source,
-        maxHeight: 600,    maxWidth: 800,
+        maxWidth: 400,
         imageQuality: 50);
+
+    Uint8List imageBytes;
+    if(source == ImageSource.camera) {
+      File rotatedImage =  await FlutterExifRotation.rotateImage(path: xf!.path);
+      imageBytes = await rotatedImage.readAsBytes();
+    } else {
+      imageBytes = await XFileImage(xf!).file.readAsBytes();
+    }
+    base64Image = base64Encode(imageBytes);
+    //base64Image = base64Image!.replaceAll(RegExp(r'\s'), '');
+    //saveFile(base64Image!);
+
     setState(() {
       if(xf!=null) {
         print('art image=' + xf!.path);
-        //pickedImage = File(xf!.path);
+
+
+
 
         showDialog(
             context: context,

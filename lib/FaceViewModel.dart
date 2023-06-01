@@ -101,18 +101,13 @@ class FaceViewModel {
     //{"code": 200, "result": {"query_token": 694}}
     //{"code": 500, "result": "'NoneType' object has no attribute 'id'"}
     //{"code":500,"result":"no person found in your photo"}
-    //print('art imageString $imageString');
-
 
     var response = await dioV1post(dio, '/api/v1/query', params);
     print('art getQuery-tokenByImage $response');
-    if(response.statusCode==200) {
-      Map map = jsonDecode(response.toString());
-      if(map['code']==200) {
-        var queryToken = map['result']["query_token"];
-        return getSimilarFace(queryToken);
-      }
-      return List.empty();
+    Map map = jsonDecode(response.toString());
+    if(map['code']==200) {
+      var queryToken = map['result']["query_token"];
+      return getSimilarFace(queryToken);
     }
     return List.empty();
   }
