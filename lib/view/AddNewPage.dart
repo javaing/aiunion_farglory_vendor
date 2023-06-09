@@ -18,6 +18,8 @@ import '../Constants.dart';
 import '../FaceViewModel.dart';
 import 'MainMenu.dart';
 //import 'package:progress_dialog/progress_dialog.dart';
+import 'package:image/image.dart' as img;
+
 
 
 /*
@@ -123,14 +125,25 @@ class _SampleViewState extends State<AddNewPage> {
   }
 
   Widget preparePhoto() {
+
     Widget w;
     if (xf != null) {
+      Image i;
+      if(imageBytes!=null) {
+        print('art 0608 1');
+        i = Image.memory(imageBytes!);
+      } else {
+        print('art 0608 2');
+        i = Image(image: XFileImage(xf!));
+      }
+
+
       w = SizedBox(
           width: 120,
           //height: 200,
           child:  ClipRRect(
             borderRadius: BorderRadius.circular(4.0),
-            child: Image(image: XFileImage(xf!)),
+            child: i,
           ),
       );
     } else {
@@ -167,6 +180,7 @@ class _SampleViewState extends State<AddNewPage> {
     if(isAllowChooseFaceLib()) {
       facetypeId = _selectedFaceLib?.id ?? faceLibs[0].id!;
     }
+    if(facetypeId==0) facetypeId=1;
     return facetypeId;
   }
 
@@ -415,7 +429,7 @@ class _SampleViewState extends State<AddNewPage> {
       ),
       DIV(),
         Row(children: [
-          Text('*工種', style: TextStyle(fontSize: 18,)),
+          const Text('*工種', style: TextStyle(fontSize: 18,)),
           SizedBox(width: 30,),
           DropdownButton<String>(
             items: worktitle.map<DropdownMenuItem<String>>((String value) {
@@ -433,7 +447,7 @@ class _SampleViewState extends State<AddNewPage> {
         ],),
 
       DIV(),
-        Row(children: [
+        const Row(children: [
         Text( '*通勤期間', style: TextStyle(fontSize: 18,),),
       ],),
       TextFormField(
@@ -444,7 +458,7 @@ class _SampleViewState extends State<AddNewPage> {
       ),
 
       DIV(),
-      Row(children: [
+      const Row(children: [
         Text( '*照片', style: TextStyle(fontSize: 18,),),
       ],),
       preparePhoto(),
@@ -555,6 +569,8 @@ class _SampleViewState extends State<AddNewPage> {
 
   }
 
+  Uint8List? imageBytes;
+
   //處理拍照
   OpenPicker(ImageSource source) async
   {
@@ -565,22 +581,27 @@ class _SampleViewState extends State<AddNewPage> {
         maxWidth: 400,
         imageQuality: 50);
 
-    Uint8List imageBytes;
+    //Uint8List imageBytes;
     if(source == ImageSource.camera) {
-      File rotatedImage =  await FlutterExifRotation.rotateImage(path: xf!.path);
+      File rotatedImage =  await FlutterExifRotation.rotateAndSaveImage(path: xf!.path);
       imageBytes = await rotatedImage.readAsBytes();
+
+      // imageBytes = await XFileImage(xf!).file.readAsBytes();
+      // final img.Image? capturedImage = img.decodeImage(imageBytes!);
+      // final img.Image?bakeImage = img.bakeOrientation(capturedImage!);
+      // imageBytes =  img.encodeJpg(bakeImage!);
+
+
     } else {
       imageBytes = await XFileImage(xf!).file.readAsBytes();
     }
-    base64Image = base64Encode(imageBytes);
-    //base64Image = base64Image!.replaceAll(RegExp(r'\s'), '');
+    base64Image = base64Encode(imageBytes!);
+    base64Image = base64Image!.replaceAll(RegExp(r'\s'), '');
     //saveFile(base64Image!);
 
     setState(() {
       if(xf!=null) {
         print('art image=' + xf!.path);
-
-
 
 
         showDialog(

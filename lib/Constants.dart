@@ -2,18 +2,18 @@
 import 'dart:ui';
 
 
-final String DEFAULT_HOST = "192.168.0.204";
+//final String DEFAULT_HOST = "192.168.0.204";
 //final String DEFAULT_HOST = "192.168.0.109";
 //final String DEFAULT_HOST = "192.168.0.107";
-//final String DEFAULT_HOST = "60.250.33.237";
+final String DEFAULT_HOST = "60.250.33.237";
 //final String DEFAULT_HOST = "60.250.33.237:60109";
 String HOST = DEFAULT_HOST;
 String V2_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOlsiZmFjZWFpIl0sInNjb3BlIjpbImFwaS1zZXJ2aWNlIl0sImV4cCI6MTkyMTE1MzI1OCwiYXV0aG9yaXRpZXMiOlsiYWl1bmlvbiJdLCJqdGkiOiI3ODI3YTBkYi0zMGQ3LTRhODItYjQyYy0yMTQ0NTMyZWRlNDEiLCJjbGllbnRfaWQiOiJhcGktY2xpZW50In0.mE8WnaGzVuWhS5LfT0ajQcBr_JP2TUOVfhch-5dJ6mA";
 
-// String default_user = 'vendor';
-// String default_pass = 'vendor';
- String default_user = 'admin';
- String default_pass = 'admin';
+String default_user = 'vendor';
+String default_pass = 'vendor';
+//  String default_user = 'admin';
+//  String default_pass = 'admin';
 List<int> allowChooseUsers = [1,2,4];
 
 String version = "1.2";

@@ -53,7 +53,7 @@ dependencies:
   flutter_dialogs: ^3.0.0
   image: ^4.0.17
   flutter_exif_rotation: ^0.5.1
-
+  connectivity_plus: ^4.0.1
 
 
 dev_dependencies:
