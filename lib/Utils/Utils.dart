@@ -14,6 +14,7 @@ import '../Constants.dart';
 
 
 void showMsg(BuildContext context,String msg) {
+  //final VoidCallback callback; // Notice the variable type
   showDialog(
       context: context,
       builder: (BuildContext context){
@@ -28,6 +29,32 @@ void showMsg(BuildContext context,String msg) {
               onPressed: (){
                 //Navigator.of(context).pop();
                 Navigator.pop(context,true);
+              },)
+          ],
+        );
+      }
+  );
+}
+
+void showMsg2(BuildContext context,String msg, VoidCallback callback) {
+//final VoidCallback callback; // Notice the variable type
+  showDialog(
+      context: context,
+      builder: (BuildContext context){
+        return AlertDialog(
+          elevation: 4,
+          shape: const RoundedRectangleBorder(
+              borderRadius: BorderRadius.all(Radius.circular(8.0))),
+          content: Text(style: const TextStyle(fontSize: 22), msg),
+          actions: <Widget>[
+            TextButton(
+              child: const Text(style: TextStyle(fontSize: 22),"OK"),
+              onPressed: (){
+                if(callback==null) {
+                  Navigator.pop(context,true);
+                } else {
+                  callback.call();
+                }
               },)
           ],
         );

@@ -81,8 +81,13 @@ class FaceViewModel {
       roleName = find.first["roleName"];
       if(find.first["faceTypes"]!=null) {
         List faces = find.first["faceTypes"];
-        vendorFacetypeName = faces.first['name'];
-        vendorFaceTypeId = faces.first['id'];
+        if(faces.first==null) {
+          vendorFacetypeName = "employee";
+          vendorFaceTypeId = 1;
+        } else {
+          vendorFacetypeName = faces.first['name'];
+          vendorFaceTypeId = faces.first['id'];
+        }
       }
       return "OK";
     } else {

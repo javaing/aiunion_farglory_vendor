@@ -2,6 +2,7 @@
 import 'dart:convert';
 
 import 'package:far_glory_construction_register/Utils/Utils.dart';
+import 'package:far_glory_construction_register/view/EmployeeList.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
@@ -85,9 +86,12 @@ class _SampleViewState extends State<MainMenuPage> {
               backgroundColor: Colors.grey, // background
             ),
               onPressed: () {
-                showMsg(context, "功能製作中");
+                //showMsg(context, "功能製作中");
+                Navigator.push(context,
+                  MaterialPageRoute(builder: (context) => const EmployeeList()),
+                );
               },
-              child: textWithIcon(Icons.edit, '修改/刪除人員'),
+              child: textWithIcon(Icons.edit, '表列人員'),
             )),
             SizedBox(height: 25,),
         SizedBox(

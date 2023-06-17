@@ -137,14 +137,16 @@ class _LoginPageState extends State<LoginPage> {
       var response = await dioV1postNoToken(dio,
           '/api/v1/session/login',
           param);
-      print("art response=" +response.toString());
+      print("art response=$response");
       V1LoginResponse v1 = v1LoginResponseFromJson(response.toString());
       if(v1.code==200) {
         if(v1.result!.token != null) {
-          print("art token=" + v1.result!.token!);
+          print("art token=${v1.result!.token!}");
           v1token = v1.result!.token!;
           vendorAccount = acct;
-          gotoNextPage();
+          showMsg2(context, "登入成功", (){
+            gotoNextPage();
+          });
           //v2login(acct, pwd);
         } else {
           show("登入失敗 login in fail");
