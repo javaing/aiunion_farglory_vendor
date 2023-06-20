@@ -83,67 +83,7 @@ String formatDateTimeDashBoard(DateTime now) {
       .replaceAll(" ", " \n$name ");
 }
 
-String formatTimeDashBoard(DateTime now) {
-  String name = getLocaleWeekDay(now.weekday);
-  return DateFormat(' hh:mm:s')
-      .format(now)
-      .replaceAll(" ", " \n$name ");
-}
 
-Widget loadUrlImage(String url, double width) {
-  if(url.contains("svg")) {
-    return  SvgPicture.network(
-      url,
-      semanticsLabel: 'A shark?!',
-      placeholderBuilder: (BuildContext context) => Container(
-          padding: const EdgeInsets.all(30.0),
-          child: const CircularProgressIndicator()),
-    );
-  } else {
-    return getUrlImage2(url, width);
-  }
-
-}
-
-Image getUrlImage2(String imagePath, double width) {
-  return Image.network(
-    imagePath,
-    fit: BoxFit.cover,
-    //height: 300, // set your height
-    width: width, // and width here
-  );
-}
-
-Image getUrlImage(String imagePath) {
-  return getUrlImage2(imagePath, 300);
-  // return Image.network(
-  //   imagePath,
-  //   fit: BoxFit.cover,
-  //   height: 300, // set your height
-  //   width: 300, // and width here
-  // );
-}
-
-Image getAssetImage(String name) {
-  return getAssetImageSize(name, 300);
-}
-
-Image getAssetImageSize(String name, double size) {
-  return Image.asset(
-    'images/$name',
-    width: size,
-    height: size,
-    fit: BoxFit.contain,
-  );
-}
-
-Image assetImageWidth(String name, double size) {
-  return Image.asset(
-    'images/$name',
-    width: size,
-    fit: BoxFit.contain,
-  );
-}
 
 String getLocaleWeekDay(int weekday) {
   List<String> name = ['', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六','星期日'];
@@ -322,4 +262,66 @@ Future<String> getFilePath() async {
 void saveFile(String str) async {
   File file = File(await getFilePath()); // 1
   file.writeAsString(str); // 2
+}
+
+String formatTimeDashBoard(DateTime now) {
+  String name = getLocaleWeekDay(now.weekday);
+  return DateFormat(' hh:mm:s')
+      .format(now)
+      .replaceAll(" ", " \n$name ");
+}
+
+Widget loadUrlImage(String url, double width) {
+  if(url.contains("svg")) {
+    return  SvgPicture.network(
+      url,
+      semanticsLabel: 'A shark?!',
+      placeholderBuilder: (BuildContext context) => Container(
+          padding: const EdgeInsets.all(30.0),
+          child: const CircularProgressIndicator()),
+    );
+  } else {
+    return getUrlImage2(url, width);
+  }
+
+}
+
+Image getUrlImage2(String imagePath, double width) {
+  return Image.network(
+    imagePath,
+    fit: BoxFit.cover,
+    //height: 300, // set your height
+    width: width, // and width here
+  );
+}
+
+Image getUrlImage(String imagePath) {
+  return getUrlImage2(imagePath, 300);
+  // return Image.network(
+  //   imagePath,
+  //   fit: BoxFit.cover,
+  //   height: 300, // set your height
+  //   width: 300, // and width here
+  // );
+}
+
+Image getAssetImage(String name) {
+  return getAssetImageSize(name, 300);
+}
+
+Image getAssetImageSize(String name, double size) {
+  return Image.asset(
+    'images/$name',
+    width: size,
+    height: size,
+    fit: BoxFit.contain,
+  );
+}
+
+Image assetImageWidth(String name, double size) {
+  return Image.asset(
+    'images/$name',
+    width: size,
+    fit: BoxFit.contain,
+  );
 }

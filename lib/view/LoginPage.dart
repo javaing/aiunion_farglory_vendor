@@ -12,7 +12,7 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import '../Constants.dart';
 import '../datamodel/V1LoginResponse.dart';
 import 'AddNewPage.dart';
-import 'MainMenu.dart';
+import 'HomeMenu.dart';
 
 class LoginPage extends StatefulWidget {
   @override

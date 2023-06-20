@@ -21,8 +21,6 @@ import 'HomeMenu.dart';
 //import 'package:progress_dialog/progress_dialog.dart';
 import 'package:image/image.dart' as img;
 
-import 'ShareData.dart';
-
 
 
 /*
@@ -30,17 +28,23 @@ import 'ShareData.dart';
   admin, root, faceadmin: 可選臉庫
   other: 沒有功能
  */
-class AddNewPage extends StatefulWidget {
-  const AddNewPage({super.key});
+class ModifyPage extends StatefulWidget {
+  //const ModifyPage({super.key});
+  const ModifyPage({Key? key, required this.profile});
+  // Step 2 <-- SEE HERE
+  final dynamic profile;
 
   @override
-  State<AddNewPage> createState() => _SampleViewState();
+  State<ModifyPage> createState() => _SampleViewState();
 }
 
-class _SampleViewState extends State<AddNewPage> {
+class _SampleViewState extends State<ModifyPage> {
   FaceViewModel _viewModel = FaceViewModel();
   final dio = Dio();
-
+  List<String> worktitle = <String>[""];
+  //List<String> workcompany = <String>[""];
+  List<String> faceTypeID = <String>[""];
+  List<String> faceTypeName = <String>[""];
 
   final _usernameController = TextEditingController();
   final _phoneNumberController = TextEditingController();
@@ -64,10 +68,13 @@ class _SampleViewState extends State<AddNewPage> {
       loadSetting();
     }
 
-    setState(() {
+    _usernameController.text = widget.profile['person'];
+    _phoneNumberController.text = widget.profile['phone'];
+
+    //setState(() {
       _validDateController.text = '2023/6/1 ~ 2023/9/30';
 
-    });
+    //});
   }
 
   bool isAllowChooseFaceLib() {
@@ -75,11 +82,13 @@ class _SampleViewState extends State<AddNewPage> {
   }
 
   Future<void> loadFacelib() async {
-    var resp = await _viewModel.loadFaceType() ?? [];
-    setState(() {
+    if(faceLibs==null) {
+      var resp = await _viewModel.loadFaceType() ?? [];
+      //setState(() {
       faceLibs = resp;
       print('art 0527 load faceLib fnish');
-    });
+      //});
+    }
   }
 
   /*
@@ -92,18 +101,6 @@ class _SampleViewState extends State<AddNewPage> {
 "memo": ""
 },
    */
-
-  // void loadSetting() async {
-  //   var response = await dioV2Get(dio, "/api/v2/settings?pageSize=1000");
-  //   setState(() {
-  //     ServerSetting setting = serverSettingFromJson(response.toString()) ;
-  //
-  //     //print('art debug ' + response.toString());
-  //     worktitle = parseSetting(setting.result! , "工種");
-  //     _selectedWorktitle = worktitle[0];
-  //     //workcompany = parseSetting(setting.result! , "承包商");
-  //   });
-  // }
   void loadSetting() async {
     if(worktitle.isEmpty) {
       debugPrint('art worktitle.isEmpty, Loading!');
@@ -118,11 +115,21 @@ class _SampleViewState extends State<AddNewPage> {
   }
 
 
-
-
   Widget preparePhoto() {
 
     Widget w;
+
+    if(widget.profile['photo']!=null) {
+      return SizedBox(
+        width: 120,
+        //height: 200,
+        child:  ClipRRect(
+          borderRadius: BorderRadius.circular(4.0),
+          child: Image.network(makeUrl(widget.profile['photo'])),
+        ),
+      );
+    }
+
     if (xf != null) {
       Image i;
       if(imageBytes!=null) {
@@ -132,7 +139,6 @@ class _SampleViewState extends State<AddNewPage> {
         print('art 0608 2');
         i = Image(image: XFileImage(xf!));
       }
-
 
       w = SizedBox(
           width: 120,
